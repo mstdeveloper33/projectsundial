@@ -7,10 +7,10 @@ import '../../../../core/services/api_service.dart';
 class OnboardingViewModel extends ChangeNotifier {
   final _apiService = locator<ApiService>();
 
-  MotivationalMessage? motivationalMessage;
+  List<MotivationalMessage>? motivationalMessages;
 
   Future<void> loadMotivationalMessage() async {
-    motivationalMessage = await _apiService.fetchMotivationalMessage();
+    motivationalMessages = await _apiService.fetchMotivationalMessages();
     notifyListeners();
   }
 }

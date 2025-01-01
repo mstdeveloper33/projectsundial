@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+
 import 'package:provider/provider.dart';
 import '../viewmodel/onboarding_viewmodel.dart';
 import 'onboarding_buttons_widget.dart';
@@ -30,7 +30,9 @@ class _OnboardingViewState extends State<OnboardingView> {
 
     return Consumer<OnboardingViewModel>(
       builder: (context, viewModel, child) {
-        final motivationalMessage = viewModel.motivationalMessage?.message ?? "Loading...";
+        final motivationalMessage = viewModel.motivationalMessages?.isNotEmpty == true
+            ? viewModel.motivationalMessages!.first.message
+            : "Loading...";
 
         final pages = [
           const OnboardingPage(
