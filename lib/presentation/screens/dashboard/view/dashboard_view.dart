@@ -1,139 +1,85 @@
+// Import necessary packages for Flutter, routing, and state management
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import '../viewmodel/dashboard_viewmodel.dart';
+import 'widget/highlight_card.dart';
+import 'widget/mood_legend.dart';
+import 'widget/mood_line_chart.dart';
+import 'widget/total_steps_card.dart';
 
-import '../../journaling/viewmodel/journal_viewmodel.dart';
-import 'dashboard_widget.dart';
-
+// Dashboard view widget displaying various health metrics
 class DashboardView extends StatelessWidget {
   const DashboardView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = Provider.of<JournalingViewModel>(context);
+    // Get the DashboardViewModel from the provider
+    final dashboardViewModel = Provider.of<DashboardViewModel>(context);
+    final journalingViewModel = dashboardViewModel.journalingViewModel;
 
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: const Text("Dashboard"),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back), // Geri butonu
-          onPressed: () {
-            context.go('/journal'); // JournalingView'e yönlendirme
-          },
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            _buildMoodLegend(context), // Emoji ve çizgi gösterge kartları
-            Expanded(
-              child: MoodLineChart(
-                  viewModel: viewModel), // MoodLineChart widget'ını kullanın
-            ),
-            const SizedBox(height: 10),
-            _buildHighlightCard(viewModel),
-            const SizedBox(height: 10),
-            Text(
-                "Total Steps: ${viewModel.healthMetrics.isNotEmpty ? viewModel.healthMetrics.first.steps : 0}"),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
-    );
-  }
+    // Load data when the dashboard is built
+    dashboardViewModel.loadData();
 
-  Widget _buildHighlightCard(JournalingViewModel viewModel) {
-    if (viewModel.journalEntries.isEmpty) {
-      return const Card(
-        color: Colors.grey,
-        child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Text("No mood entries available.",
-              style: TextStyle(color: Colors.white)),
-        ),
-      );
-    }
-
-    // En olumlu ruh hali girişini bul
-    final bestEntry =
-        viewModel.journalEntries.where((entry) => entry.mood == "😊").isNotEmpty
-            ? viewModel.journalEntries
-                .where((entry) => entry.mood == "😊")
-                .reduce((a, b) => a.date.compareTo(b.date) > 0 ? a : b)
-            : viewModel.journalEntries.first;
-
-    return Card(
-      color: Colors.green,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            const Text("Best Mood Entry",
-                style: TextStyle(color: Colors.white, fontSize: 18)),
-            const SizedBox(height: 10),
-            Text(bestEntry.text, style: const TextStyle(color: Colors.white)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Emoji ve çizgi gösterge kartları
-  Widget _buildMoodLegend(context) {
-    double screenWidth = MediaQuery.of(context).size.width;
-    double screenHeight = MediaQuery.of(context).size.height;
-    double horizontalMargin = screenWidth * 0.3;
-    double verticalMargin =
-        screenHeight * 0.001; // %5 margin, ekran genişliğine göre ayarlandı
-    return Align(
-      alignment: Alignment.center, // Ortalamak için
-      child: Card(
-        margin: EdgeInsets.symmetric(
-            vertical: verticalMargin,
-            horizontal:
-                horizontalMargin), // Kartın kenar boşluklarını ayarlayarak genişliğini küçültüyoruz
-        child: Container(
-          width: double.infinity, // Kartın içeriğine göre genişliği doldur
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start, // Başlıkların sola yaslanması için
-            children: [
-              _buildMoodIndicator("😊",
-                  const LinearGradient(colors: [Colors.lime, Colors.green])),
-              _buildMoodIndicator(
-                  "😞",
-                  const LinearGradient(
-                      colors: [Colors.lightBlue, Colors.blue])),
-              _buildMoodIndicator("😠",
-                  const LinearGradient(colors: [Colors.redAccent, Colors.red])),
+    // ignore: deprecated_member_use
+    return WillPopScope(
+      onWillPop: () async {
+        context
+            .go('/journal'); // Navigate to /journal page on back button press
+        return false; // Prevent default back action
+      },
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color.fromARGB(255, 37, 84, 171), // Gradient color 1
+              Color.fromARGB(255, 13, 36, 69), // Gradient color 2
+              Color.fromARGB(255, 125, 142, 170), // Gradient color 3
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  // Tek bir emoji ve çizgi gösterge kartı
-  _buildMoodIndicator(String mood, Gradient gradient) {
-    return Row(
-      children: [
-        Text(
-          mood,
-          style: const TextStyle(fontSize: 15),
-        ),
-        const SizedBox(width: 20),
-        Container(
-          height: 3,
-          width: 50, // Çizginin genişliği
-          decoration: BoxDecoration(
-            gradient: gradient,
-            borderRadius: BorderRadius.circular(2),
+        child: Scaffold(
+          backgroundColor:
+              Colors.transparent, // Transparent background for the scaffold
+          appBar: AppBar(
+            backgroundColor: Colors.transparent, // Transparent app bar
+            elevation: 0, // No shadow
+            centerTitle: true,
+            title: const Text("Dashboard",
+                style: TextStyle(color: Colors.white)), // Dashboard title
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back,
+                  color: Colors.white), // Back button
+              onPressed: () {
+                context
+                    .go('/journal'); // Navigate to journal on back button press
+              },
+            ),
+          ),
+          body: Padding(
+            padding: const EdgeInsets.all(16.0), // Padding around the body
+            child: Column(
+              children: [
+                const MoodLegend(), // Widget displaying mood legend
+                Expanded(
+                    child: MoodLineChart(
+                        viewModel: journalingViewModel)), // Line chart for mood
+                const SizedBox(height: 5), // Space between widgets
+                HighlightCard(
+                    viewModel:
+                        journalingViewModel), // Highlight card for important metrics
+                const SizedBox(height: 5), // Space between widgets
+                TotalStepsCard(
+                    viewModel:
+                        journalingViewModel), // Card displaying total steps
+                const SizedBox(height: 10), // Space below the last widget
+              ],
+            ),
           ),
         ),
-      ],
+      ),
     );
   }
 }
